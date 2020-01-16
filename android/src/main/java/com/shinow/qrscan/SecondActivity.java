@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -32,10 +33,20 @@ public class SecondActivity extends AppCompatActivity {
     private SensorManager sensorManager;
     private Sensor lightSensor;
     private SensorEventListener sensorEventListener;
-
+    private AudioManager audioManager;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // mute
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+        } else {
+            audioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        }
+        
         setContentView(R.layout.activity_second);
         CaptureFragment captureFragment = new CaptureFragment();
         CodeUtils.setFragmentArgs(captureFragment, R.layout.my_camera);
@@ -51,6 +62,17 @@ public class SecondActivity extends AppCompatActivity {
         sensorEventListener = new LightSensorEventListener(lightLayout);
 
         initView();
+    }
+    
+    @Override
+    protected void onDestroy() {
+        // un-mute
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+        } else {
+            audioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        }
+        super.onDestroy();
     }
 
     @Override
